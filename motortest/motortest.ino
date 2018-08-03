@@ -1,14 +1,16 @@
 //Arliss Bot v1
 //
 //ARDUINO (UNO) SETUP:
-//
+//======================
+//Adafruit MotorShield v2 = M1,M3
+
+/******************** Libraries ********************/
+#include <Wire.h> //used by: motor shield
+#include <Adafruit_MotorShield.h> //used by: motor shield
+#include "utility/Adafruit_MS_PWMServoDriver.h" //used by: motor shield for DC motors
 
 
-#include <Wire.h>
-#include <Adafruit_MotorShield.h>
-#include "utility/Adafruit_MS_PWMServoDriver.h"
-
-
+/******************** Globals ********************/
 //Create the motor shield objects
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
@@ -16,13 +18,19 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(1);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(3);
 
+
+
+/******************** Setup ********************/
 void setup() {
 	AFMS.begin();
 
+	//Set default motor speed
 	leftMotor->setSpeed(200);
 	rightMotor->setSpeed(200);
 }
 
+
+/******************** Loop ********************/
 void loop() {
 	delay(50);
 	leftMotor->run(FORWARD);
