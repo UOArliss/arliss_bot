@@ -3,7 +3,7 @@
 //ARDUINO (UNO) SETUP:
 //======================
 //Adafruit LSM303 Compass = VIN, GND, SDA (A4), SCL (A5)
-
+//Adafruit Ultimate GPS Logger Shield = D7 & D8 (Uses shield, so pins used internally) Make sure the logging switch is set to 'soft. serial'
 
 /************* Libraries *************/
 #include <Wire.h>
@@ -48,5 +48,6 @@ void loop() {
         
     Serial.println("Compass Heading: ");
     Serial.println(heading);
+    Serial.println("\n");
     delay(500);
 }
