@@ -1,5 +1,8 @@
 #ifndef PID_H
 #define PID_H
+#include <Arduino.h>
+
+#define DEFAULT_SAMPLE_MS 1000
 
 class pid{
 

@@ -1,10 +1,10 @@
 #include "pid.h"
-#include <Adafruit_MotorShield.h>
-#define DEFAULT_SAMPLE_MS 1000
 #include <Arduino.h>
+#include <Adafruit_MotorShield.h>
 #include <Wire.h> //used by: motor shield
 #include <Adafruit_MotorShield.h> //used by: motor shield
 #include "utility/Adafruit_MS_PWMServoDriver.h" //used by: motor shield for DC motors
+
 #define FAST_SPEED 150
 #define NORMAL_SPEED 125
 #define TURN_SPEED 100
