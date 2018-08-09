@@ -38,8 +38,10 @@ void loop(){
   pid p = pid(NORMAL_SPEED, .5,.01,.0001);
   for(;;){
     drive_motor->setSpeed(speed);
-    p.compute(speed);
+    speed = p.compute(speed);
     delay(500);
+    Serial.println("Speed is ");
+    Serial.println(speed);
   }
   drive_motor->run(RELEASE);
 }
