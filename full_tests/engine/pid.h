@@ -67,7 +67,7 @@ pid::pid(float dval, float p, float i, float d){
   setpoint = dval;
 
   /*set upper and lower*/
-  upper = 255;
+  upper =1000;
   lower = 0;
 }
 
