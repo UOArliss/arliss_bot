@@ -4,7 +4,9 @@
 #include <Wire.h> //used by: motor shield
 #include <Adafruit_MotorShield.h> //used by: motor shield
 #include "utility/Adafruit_MS_PWMServoDriver.h" //used by: motor shield for DC motors
-
+#define ECHOPIN 11
+#define TRIGGERPIN 12
+#define MAXDIST 300
 #define FAST_SPEED 150
 #define NORMAL_SPEED 125
 #define TURN_SPEED 100
@@ -14,66 +16,72 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 Adafruit_DCMotor* drive_motor = AFMS.getMotor(1); //M1 port
-Adafruit_DCMotor* turn_motor = AFMS.getMotor(3); //M2 port
+Adafruit_DCMotor* turn_motor = AFMS.getMotor(2); //M2 port
 
 void setup(){
 
   /*begins with default frequency 1.6KHz*/ 
   AFMS.begin();
-
+  pinMode(TRIGGERPIN , OUTPUT);
+  pinMode(ECHOPIN , INPUT);
+  Serial.begin(9600);
 
 }
 
 
 void loop(){
   uint8_t i;
-  drive_motor->setSpeed(1);
-  turn_motor->setSpeed(0);
-
   move_forward();
   
-  for(i =0; i < MAX_SPEED; i++){
-    drive_motor->setSpeed(i);
-    if(i > 140){
-      turn_motor->setSpeed(150);
-      turn_right();
-    }
-    if(i < 140){
-      turn_motor->setSpeed(150);
-      turn_left();
-    }
-    delay(50);
-  }
-
-
-  drive_motor->setSpeed(0);
-  turn_motor->setSpeed(MAX_SPEED);
-  turn_right();
-  delay(4000);
-  turn_left();
-  delay(4000);
-  turn_straight();
-  
-
-  for(i =MAX_SPEED; i > 0; i--){
-    move_backward();
-    
-  }
-
-  float speed = 0;
-  delay(1000);
+  drive_motor->setSpeed(150);
+  turn_motor->setSpeed(150);
+  int obj =0;
   /*PID loop needs to be refined, but basic functionality is present*/
-  pid p = pid(500, .5,.00001,.01);
+  pid p = pid(1024, .5,.00001,.01);
+  float speed;
   for(;;){
+    move_forward();
+    obj = obj_detection();
+    if (obj){
+      p.set_setpoint(speed/2);
+      speed = p.compute(speed);
+      drive_motor->setSpeed(speed);
+      turn_motor->setSpeed(speed);
+      Serial.println("Speed is ");
+      Serial.println(speed);
+      delay(50);
+    } else {
+      p.set_setpoint(1024);
     drive_motor->setSpeed(speed);
+    turn_motor->setSpeed(speed);
     speed = p.compute(speed);
     delay(50);
-    Serial.begin(9600);
     Serial.println("Speed is ");
     Serial.println(speed);
   }
-  drive_motor->run(RELEASE);
 }
+}
+
+int obj_detection(){
+  return 0;
+}
+
+/*
+int obj_detection(){
+  digitalWrite(TRIGGERPIN , LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIGGERPIN , HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGGERPIN , LOW);
+  long duration = pulseIn(ECHOPIN, HIGH);
+
+  long distance = duration / 58.2;
+
+  if ( distance <= MAXDIST){
+    return 1;
+  } 
+  return 0;
+}*/
 
 void turn_left(){
   turn_motor->run(BACKWARD);
@@ -89,6 +97,7 @@ void turn_straight(){
 
 void move_forward(){
   drive_motor->run(FORWARD);
+  turn_motor->run(FORWARD);
 }
 
 void move_backward(){

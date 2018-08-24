@@ -20,7 +20,7 @@ class pid{
     inline void set_ki(float i){ this->Ki = i;}
     inline void set_kd(float d){ this->Kd = d;}
 
-    
+    inline void set_setpoint(float s){this->setpoint = s;}
 
     /*change sample rate in ms, default is 1000 = 1sec*/
     void set_sample_rate(float rate);
