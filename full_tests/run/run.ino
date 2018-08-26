@@ -39,7 +39,7 @@ void loop(){
   pid p = pid(1024, .5,.00001,.01);
   float speed;
   for(;;){
-    move_forward();
+    move_forward(150,150);
     obj = obj_detection();
     if (obj){
       p.set_setpoint(speed/2);
@@ -71,7 +71,7 @@ int obj_detection(){
   return 0;
 }*/
 
-
+/*change to detect when should turn etc*/
 int obj_detection(){
   digitalWrite(TRIGGERPIN , LOW);
   delayMicroseconds(2);
@@ -95,14 +95,14 @@ void turn_left(int speed1, int speed2){
   left_motor->run(RELEASE);
 }
 
-void turn_right(int speed, int speed2){
+void turn_right(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
   left_motor->run(FORWARD);
   right_motor->run(RELEASE);	
 }
 
-void turn_straight(int speed, int speed2){
+void turn_straight(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
   right_motor->run(FORWARD);
@@ -129,5 +129,12 @@ void move_stop(int speed1, int speed2){
   right_motor->setSpeed(speed2);
   left_motor->run(RELEASE);
   right_motor->run(RELEASE);
+}
+
+void obj_avoidance(){
+
+
+
+
 }
 
