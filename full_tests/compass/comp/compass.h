@@ -262,7 +262,7 @@ template <typename Ta, typename Tb> float LSM303::vector_dot(const vector<Ta> *a
   return (a->x * b->x) + (a->y * b->y) + (a->z * b->z);
 }
 
-
+/*
 
 template <typename Ta, typename Tb> void LSM303::calibrate_offset(vector<Ta>* mmin , vector<Tb>* mmax){
   Wire.begin();
@@ -271,7 +271,7 @@ template <typename Ta, typename Tb> void LSM303::calibrate_offset(vector<Ta>* mm
 
   LSM303::vector<int16_t> running_min = {32767, 32767, 32767}, running_max = {-32768, -32768, -32768};
 
-  uint32_t time = 60000L; /*loop for 1 min*/
+  uint32_t time = 60000L; 
 
   for( uint32_t start = millis(); (millis()-start) < time;){
     compass.read();
@@ -289,7 +289,7 @@ template <typename Ta, typename Tb> void LSM303::calibrate_offset(vector<Ta>* mm
     delay(100);
   }
 }
-
+*/
 
 
 #endif

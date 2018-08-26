@@ -31,3 +31,26 @@ void loop() {
   
   delay(100);
 }
+
+template <typename Ta, typename Tb> void LSM303::calibrate_offset(vector<Ta>* mmin , vector<Tb>* mmax){
+
+  LSM303::vector<int16_t> running_min = {32767, 32767, 32767}, running_max = {-32768, -32768, -32768};
+
+  uint32_t time = 60000L; 
+
+  for( uint32_t start = millis(); (millis()-start) < time;){
+    compass.read();
+    mmin->x = mmin(running_min.x , compass.m.x);
+    mmin->y = mmin(running_min.y , compass.m.y);
+    mmin->z = mmin(running_min.z , compass.m.z);
+
+    mmax->x = mmax(running_max.x , compass.m.x);
+    mmax->y = mmax(running_max.y , compass.m.y);
+    mmax->z = mmax(running_max.z , compass.m.z);
+
+    snprintf(report, sizeof(report), "min: {%+6d, %+6d, %+6d}    max: {%+6d, %+6d, %+6d}",
+      running_min.x, running_min.y, running_min.z,
+      running_max.x, running_max.y, running_max.z);
+    delay(100);
+  }
+}
