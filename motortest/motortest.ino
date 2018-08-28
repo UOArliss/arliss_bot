@@ -19,41 +19,56 @@ Adafruit_DCMotor *leftMotor = AFMS.getMotor(1);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(3);
 
 
-
+bool kyblat = false;
 /******************** Setup ********************/
 void setup() {
 	AFMS.begin();
 
 	//Set default motor speed
-	leftMotor->setSpeed(200);
-	rightMotor->setSpeed(200);
+	leftMotor->setSpeed(255);
+	rightMotor->setSpeed(255);
+  kyblat = true;
 }
 
 
 /******************** Loop ********************/
 void loop() {
-	delay(50);
-	leftMotor->run(FORWARD);
-	rightMotor->run(FORWARD);
-	delay(1000);
-	//Slow Down
-	leftMotor->setSpeed(150);
-	rightMotor->setSpeed(150);
-	leftMotor->setSpeed(75);
-	rightMotor->setSpeed(75);
-	leftMotor->setSpeed(50);
-	rightMotor->setSpeed(50);
-
-	//Stop
-	leftMotor->run(RELEASE); 
-	rightMotor->run(RELEASE); 
-
-	//Roll back
-	leftMotor->run(BACKWARD);
-	rightMotor->run(BACKWARD);
-	
-	delay(300);
-	leftMotor->run(RELEASE); 
-	rightMotor->run(RELEASE); 
-
+  if(kyblat == true){
+  	delay(50);
+    leftMotor->setSpeed(255);
+    rightMotor->setSpeed(255);
+    
+  	leftMotor->run(FORWARD);
+  	rightMotor->run(FORWARD);
+  	delay(10000);
+  	//Slow Down
+  	leftMotor->setSpeed(255);
+  	rightMotor->setSpeed(255);
+    leftMotor->run(FORWARD);
+    rightMotor->run(FORWARD);
+    delay(200);
+  	leftMotor->setSpeed(255);
+  	rightMotor->setSpeed(255);
+   leftMotor->run(FORWARD);
+   rightMotor->run(FORWARD);
+    delay(1000);
+  	leftMotor->setSpeed(50);
+  	rightMotor->setSpeed(50);
+   leftMotor->run(FORWARD);
+   rightMotor->run(FORWARD);
+    delay(200);
+  	//Stop
+  	leftMotor->run(RELEASE); 
+  	rightMotor->run(RELEASE); 
+    delay(200);
+  	//Roll back
+    leftMotor->setSpeed(255);
+  	leftMotor->run(BACKWARD);
+  	rightMotor->run(BACKWARD);
+    
+  	delay(3000);
+  	leftMotor->run(RELEASE); 
+  	rightMotor->run(RELEASE); 
+    kyblat = false;
+  }
 }
