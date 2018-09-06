@@ -12,12 +12,12 @@
 
 #define GPS_PIN1 4
 #define GPS_PIN2 3
-#define GOAL_LAT 44.0465
-#define GOAL_LON 123.0742
+#define GOAL_LAT 49999
+#define GOAL_LON 595
 
 #define LEFT 1
 #define RIGHT 2
-#define SAFE_DIST 250
+#define SAFE_DIST 300
 #define TURN_DIST 150
 #define STOP_DIST 30
 #define FAST_SPEED 150
@@ -31,6 +31,7 @@
 #define TRIGGERPIN 11
 #define ECHOPIN 11
 
+enum distances { SAFE, SLOW ,TURN,  STOP};
 /*object reactions*/
 #define SAFE 0
 #define SLOW 1
@@ -60,7 +61,7 @@ void setup()
   /*launch code loop*/
   int has_launched = 0;
   /*detect launch*/
- while(!has_launched){
+  while(!has_launched){
     has_launched = detect_launch();
     delay(500);
   };
@@ -88,11 +89,10 @@ void setup()
       delay(200);
     }
 
-  /*want to be able to detect that we are on the ground*/
-
-
   /*we have deplayed at this point, now burn the parachute off*/
   burn_string();
+  float speed = MAX_SPEED;
+  int obj = 0;
 }
 
 void loop()
@@ -114,25 +114,22 @@ void loop()
   switch(obj){
     case SAFE:
       move_forward(MAX_SPEED,MAX_SPEED);
-      Serial.println("SAFE");
       break;
     case SLOW:
       p.set_setpoint(speed/2);
       speed = p.compute(speed);
       move_forward(speed,speed);
-      Serial.println("SLOW");
       break;
     case TURN:
       p.set_setpoint(TURN_SPEED);
       speed = p.compute(TURN_SPEED);
-  
+
       while(obj = obj_detection() < 1){
       turn_left(speed,speed);
       delay(400);
       turn_right(speed,speed);
       }
       break;
-      Serial.println("TURN");
     case STOP:
       p.set_setpoint(0);
       move_stop();
@@ -142,7 +139,6 @@ void loop()
       p.set_setpoint(NORMAL_SPEED);
       speed = p.compute(NORMAL_SPEED);
       }
-      Serial.println("STOP");
       break;
   }
 
@@ -185,14 +181,14 @@ int detect_launch(){
 
 /*initializes the engine port and sends high signal to burn the string holding the parachute*/
 void burn_string(){
-  pinMode(10, OUTPUT);
   /*on testing this did not work look into increasing motor shield voltage output
   or another method of string burn*/
-  digitalWrite(10, HIGH);
-  //analogWrite(10,255);
-  delay(1500);
-  digitalWrite(10, LOW);
-
+  AFMS.begin();
+  burn_port->setSpeed(255);
+  burn_port->run(FORWARD);
+  delay(1000);
+  burn_port->setSpeed(0);
+  burn_port->run(RELEASE);
 }
 
 double get_desired_heading(){

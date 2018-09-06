@@ -28,8 +28,8 @@ LSM303::LSM303(void)
   adjust these values in your own sketch.
   -538 -811 -1092   790  375  519 
   */
-  m_min = (LSM303::vector<int16_t>){-32767, -32767, -32767};
-  m_max = (LSM303::vector<int16_t>){+32767, +32767, +32767};
+  m_min = (LSM303::vector<int16_t>){-149, -158, -1477};
+  m_max = (LSM303::vector<int16_t>){+527, +906, -655};
 
   //calibrate(&m_min, &m_max);
 
@@ -460,7 +460,7 @@ float LSM303::heading(void)
   }
   else
   {                             /*device 'pointing along the -y axis*/
-    return heading((vector<int>){0, -1, 0});
+    return heading((vector<int>){0, 0, 1});
   }
 }
 
