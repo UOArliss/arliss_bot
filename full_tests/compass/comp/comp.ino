@@ -35,6 +35,11 @@ void loop() {
   x = (((float)(compass.m.x - running_min.x))/((float)(running_max.x - running_min.x)))*(200.0) - 100.0;
   y = (((float)(compass.m.y - running_min.y))/((float)(running_max.y - running_min.y)))*(200.0) - 100.0;
   z = (((float)(compass.m.z - running_min.z))/((float)(running_max.z - running_min.z)))*(200.0) - 100.0;
+  //high
+  //need North X and East X, atan2 the two values....
+  //cross acc and mag for east,
+  //cross east and acc for north
+  
   Serial.print(x); Serial.print(' '); Serial.print(y); Serial.print(' ');Serial.println(z);
   delay(100);
 }
