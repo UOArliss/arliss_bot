@@ -1,7 +1,10 @@
 #include <Wire.h>
+#incluide<SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
 #include "compass.h"
+#include "TinyGPS.h"
+
 LSM303 compass;
 void setup() {
   // put your setup code here, to run once:

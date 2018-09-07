@@ -227,13 +227,14 @@ and horizontal north is returned.
 */
 template <typename T> float LSM303::heading(vector<T> from)
 {
-    vector<int32_t> temp_m = {m.x, m.y, m.z};
+  //If the mins and maxs are the same, the division would be terrible and we should avoid that.
+   if(m_min.x == m_max.x || m_min.y == m_max.y || m_min.z == m_max.z){
+      return -1; 
+    }
+    //For each x,y,z, performs a linear map from the known max min to -100 <-> 100.
+    vector<float> temp_m = {(((float)((float)m.x - (float)m_min.x)) / ((float)(m_max.x - m_min.x)))*200.0 - 100.0, ((((float)m.y - (float)m_min.y)) / ((float)(m_max.y - m_min.y)))*200.0 - 100.0, ((((float)m.z - (float)m_min.z)) / ((float)(m_max.z - m_min.z)))*200.0 - 100.0};
 
-    // subtract offset (average of min and max) from magnetometer readings
-    temp_m.x -= ((int32_t)m_min.x + m_max.x) / 2;
-    temp_m.y -= ((int32_t)m_min.y + m_max.y) / 2;
-    temp_m.z -= ((int32_t)m_min.z + m_max.z) / 2;
-
+    
     // compute E and N
     vector<float> E;
     vector<float> N;
