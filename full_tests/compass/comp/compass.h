@@ -164,7 +164,6 @@ class LSM303
     vector<int16_t> m; // magnetometer readings
     vector<int16_t> m_max; // maximum magnetometer values, used for calibration
     vector<int16_t> m_min; // minimum magnetometer values, used for calibration
-
     byte last_status; // status of last I2C transmission
 
     LSM303(void);
@@ -228,14 +227,10 @@ into the horizontal plane and the angle between the projected vector
 and horizontal north is returned.
 */
 template <typename T> float LSM303::heading(vector<T> from)
-{
-    vector<float> temp_m = {(float)m.x, (float)m.y, (float)m.z};
-
-    // subtract offset (average of min and max) from magnetometer readings
-    temp_m.x = (((float)(temp_m.x - (int32_t)m_min.x)) / ((float)(m_max.x - m_min.x)))*200 - 100;//((int32_t)m_min.x + m_max.x) / 2;
-    temp_m.y = (((float)(temp_m.y - (int32_t)m_min.y)) / ((float)(m_max.y - m_min.y)))*200 - 100;//((int32_t)m_min.y + m_max.y) / 2;
-    temp_m.z = (((float)(temp_m.z - (int32_t)m_min.z)) / ((float)(m_max.z - m_min.z)))*200 - 100;//((int32_t)m_min.z + m_max.z) / 2;
-
+{   if(m_min.x == m_max.x || m_min.y == m_max.y || m_min.z == m_max.z){
+      return -1; 
+    }
+    vector<float> temp_m = {(((float)((float)m.x - (float)m_min.x)) / ((float)(m_max.x - m_min.x)))*200.0 - 100.0, ((((float)m.y - (float)m_min.y)) / ((float)(m_max.y - m_min.y)))*200.0 - 100.0, ((((float)m.z - (float)m_min.z)) / ((float)(m_max.z - m_min.z)))*200.0 - 100.0};
     // compute E and N
     vector<float> E;
     vector<float> N;
