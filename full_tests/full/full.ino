@@ -1,5 +1,5 @@
 #include <Wire.h>
-#incluide<SPI.h>
+#include<SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
 #include "compass.h"
