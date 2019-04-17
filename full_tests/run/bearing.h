@@ -52,3 +52,4 @@ int main(int argc , char** argv){
 	printf("%f\n%f",r,d );
 }
 */
+

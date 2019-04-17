@@ -15,8 +15,8 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 //Create our motors
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(1);
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(3);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 
 
 bool kyblat = false;

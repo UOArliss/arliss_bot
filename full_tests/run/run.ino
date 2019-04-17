@@ -1,21 +1,19 @@
 #include <Adafruit_MotorShield.h>
 #include <SoftwareSerial.h> 
 #include <Wire.h>
-//#include <LSM303.h>
 #include "compass.h"
-#include <NewPing.h>
 #include "TinyGPS++.h"
 #include "pid.h"
-/*defines for various constants*/
-#define LAUNCH_TRIGGER_G 2000//8000
-#define PARACHUTE_DEPLAY_M 2000
-#define LAUNCH_DELAY 2000
-#define BURN_DELAY 2000
 
+#define LAUNCH_TRIGGER_G 8000//8000
+#define PARACHUTE_DEPLAY_M 1489
+#define LAUNCH_DELAY 60000
+#define BURN_DELAY 5000
+#define GROUND_ALT 1200
 #define GPS_PIN1 8
-#define GPS_PIN2 7
-#define GOAL_LAT 44.0465
-#define GOAL_LON 123.0742
+#define GPS_PIN2 7       
+#define GOAL_LAT 40.88
+#define GOAL_LON -119.12
 
 #define LEFT 1
 #define RIGHT 2
@@ -29,10 +27,10 @@
 #define MAX_SPEED 255
 #undef _SS_MAX_RX_BUFFs
 #define _SS_MAX_RX_BUFF 256
-#define TURN_GIVE 10
+#define TURN_GIVE 25
 
 /*ULTRASONIC PINS*/
-#define TRIGGERPIN 9
+ #define TRIGGERPIN 9
 #define ECHOPIN 9
 
 /*object reactions*/
@@ -40,47 +38,45 @@
 #define SLOW 1
 #define TURN 2
 #define STOP 3
-#define DEBUGGING_CODE 1
+#define DEBUGGING_CODE 0
 /*global objects from libraries*/
-
-NewPing sonar(TRIGGERPIN, ECHOPIN, SAFE_DIST);
 TinyGPSPlus gps;
 LSM303 compass;
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
-Adafruit_DCMotor* left_motor = AFMS.getMotor(1); //M1 port
-Adafruit_DCMotor* right_motor = AFMS.getMotor(3); //M2 port
-Adafruit_DCMotor* burn_port = AFMS.getMotor(2); //M2 port
+Adafruit_DCMotor* left_motor = AFMS.getMotor(2); //M1 port
+Adafruit_DCMotor* right_motor = AFMS.getMotor(1); //M2 port
 
 SoftwareSerial gps_comm = SoftwareSerial(GPS_PIN1, GPS_PIN2);
 double lat = 0;
 double lon = 0;
-double alt = 1000000;
+double alt = 1;
 unsigned long prevTime = 0;
 void setup()
 {
   Serial.begin(9600);
   Wire.begin();
+    AFMS.begin();
+
+  
   compass.init();
   compass.enableDefault();
-  //pinMode(GPS_PIN1, INPUT);
-  //pinMode(GPS_PIN2, OUTPUT);
-  /*launch code loop*/
   int has_launched = 0;
   /*detect launch*/
+  gps_comm.begin(9600);
+  unsigned long ptime = millis();
   while(!has_launched){
+    pollGPS();
+    if(millis() - ptime > 250){
+    //delay(50);
+    ptime = millis();
     has_launched = detect_launch();
-    delay(50);
+    }
   }
   Serial.println("Launched!!");
   delay(LAUNCH_DELAY);
-  /*detect when time to deploy the parachute*/
-    //double lat;
-    //double lon;
     int deployed = 0;
-    //int current_alt = 1000000;/*init with a very large value*/
-    /*begin gps detection of altitude deploy at macro set above*/
-    gps_comm.begin(9600);
+    
     while(!deployed){
       //Serial.print(" ");Serial.println(ss.available());
       pollGPS();
@@ -89,108 +85,70 @@ void setup()
       }
     }
     Serial.println("Near landing!!!");
-    delay(BURN_DELAY);
+    //delay(BURN_DELAY);
     Serial.println("Burning cord!");
-/*   if (gps.location.isUpdated()){
-          lat = gps.location.lat();
-        lon = gps.location.lng();
-            current_alt = gps.altitude.meters();
-            Serial.print("Altitude ");Serial.println(current_alt);
-            if (current_alt <= PARACHUTE_DEPLAY_M)
-              deployed = 1;
-        //delay(500);
-      }
-      //delay(200);*/
-  /*want to be able to detect that we are on the ground*/
-
 
   /*we have deplayed at this point, now burn the parachute off*/
-  burn_string();
+  //burn_string();
   prevTime = millis();
+  pid p = pid(1024, .5,.00001,.01);
 }
-int prevDir = 15;
-
+int prevDir = 35;
 int targetReached = 0;
 void loop()
 {
   if(targetReached == 1){
     delay(200);
+    Serial.println("DONTRNTNEHE");
     return;
   }
   pollGPS();
   if(millis() - prevTime > 250){
+    Serial.println("in timer");
     prevTime = millis();
     compass.read();
     /*determine the course we need to go and set compass heading accoridingly*/
     double d_head = get_desired_heading(); /*desired heading*/
-    double c_head = compass.heading();  /*current heading*/
-  
+    Serial.println("desired heading is");
+    Serial.println(d_head);
+    double c_head = compass.heading();   /*current heading*/
+    Serial.println("calc heading is");
+    Serial.println(c_head);
     /*gets the current direction */
     int dir = calculate_direction(c_head, d_head, prevDir);
-    prevDir = dir;
+    
     /*set up speed*/
-    pid p = pid(1024, .5,.00001,.01);
+    
     if(gps.distanceBetween(lat,lon , GOAL_LAT,GOAL_LON) < 10){
       targetReached = 1;
     }
-    //int obj = obj_detection();
+
     float speed = 0.0f;
-    /*switch(obj){
-      case SAFE:
-        move_forward(MAX_SPEED,MAX_SPEED);
-        Serial.println("SAFE");
-        break;
-      case SLOW:
-        p.set_setpoint(speed/2);
-        speed = p.compute(speed);
-        move_forward(speed,speed);
-        Serial.println("SLOW");
-        break;
-      case TURN:
-        p.set_setpoint(TURN_SPEED);
-        speed = p.compute(TURN_SPEED);
-    
-        while(obj = obj_detection() < 1){
-        turn_left(speed,speed);
-        delay(400);
-        turn_right(speed,speed);
-        }
-        Serial.println("TURN");
-        break;
-        
-      case STOP:
-        p.set_setpoint(0);
-        move_stop();
-  
-        while(obj = obj_detection() > 2){
-        
-        p.set_setpoint(NORMAL_SPEED);
-        speed = p.compute(NORMAL_SPEED);
-        }
-        Serial.println("STOP");
-        break;
-       default:
-        break;
-    }
-    */
-  
     
     if ( dir == LEFT){
-      speed = TURN_SPEED;
-      turn_left(speed,speed);
-  
+      if(dir != prevDir){ 
+        Serial.println("LEFT");
+        speed = NORMAL_SPEED;
+        turn_left(speed,speed);
+      }
     } else if (dir == RIGHT) {
-      speed = TURN_SPEED;
-      turn_right(speed,speed);
-  
+      if(dir != prevDir){ 
+        Serial.println("RIGHT");
+        speed = NORMAL_SPEED;
+        turn_right(speed,speed);
+      }
     } else {
-      speed = MAX_SPEED;
+      if(dir != prevDir){  
+            Serial.println("Straight");
+      speed = FAST_SPEED;
       turn_straight(speed,speed);
+      }
     }
+  prevDir = dir;
+
   
-    
+
   
-    //delay(100);
   }
 }
 
@@ -215,6 +173,13 @@ void pollGPS(){
       }
 }
 
+int check_alt(){
+    //poll_gps();
+    if( alt > GROUND_ALT + 400)
+      return 1;
+    return 0; 
+}
+
 /*takes current heading and desired and give most effective way to turn left/right*/
 int calculate_direction(double current , double desired, int PRV){
   double prov = desired - current;
@@ -235,7 +200,7 @@ int detect_launch(){
   int16_t launch = (((int32_t)(abs(compass.a.z)>>4))*((int32_t)(abs(compass.a.z)>>4)) + ((int32_t)(abs(compass.a.y)>>4))*((int32_t)(abs(compass.a.y)>>4)) + ((int32_t)(abs((compass.a.x))>>4))*((int32_t)(abs((compass.a.x))>>4)))/1000;
   //Serial.print((compass.a.z/16)*(compass.a.z/16));Serial.print(' ');Serial.print((compass.a.y/16)*(compass.a.y/16));Serial.print(' ');Serial.println((compass.a.x/16)*(compass.a.x/16));
   Serial.println(launch);
-  if (launch > LAUNCH_TRIGGER_G )
+  if (launch > LAUNCH_TRIGGER_G || check_alt() == 1)
       return 1;
    return 0;
 }
@@ -265,17 +230,17 @@ double get_desired_heading(){
 /**************
   Movement Functions
 **************/
-void turn_left(int speed1, int speed2){
+void turn_right(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
   right_motor->run(FORWARD);
   left_motor->run(RELEASE);
 }
 
-void turn_right(int speed1, int speed2){
+void turn_left(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
-  left_motor->run(FORWARD);
+  left_motor->run(BACKWARD);
   right_motor->run(RELEASE);  
 }
 
@@ -283,20 +248,20 @@ void turn_straight(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
   right_motor->run(FORWARD);
-  left_motor->run(FORWARD);
+  left_motor->run(BACKWARD);
 }
 
 void move_forward(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
-  left_motor->run(FORWARD);
+  left_motor->run(BACKWARD);
   right_motor->run(FORWARD);
 }
 
 void move_backward(int speed1, int speed2){
   left_motor->setSpeed(speed1);
   right_motor->setSpeed(speed2);
-  left_motor->run(BACKWARD);
+  left_motor->run(FORWARD);
   right_motor->run(BACKWARD);
 
 }
@@ -306,17 +271,8 @@ void move_stop(){
   right_motor->run(RELEASE);
 }
 
-/*function to detect if obj is within range*/
+/*function to detect if obj is within range
 int obj_detection(){
-  /*digitalWrite(TRIGGERPIN , LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIGGERPIN , HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIGGERPIN , LOW);
-  long duration = pulseIn(ECHOPIN, HIGH);
-
-  long distance = duration / 58.2;
-  */
   long distance = sonar.ping_cm();
   
   if(distance == 0){
@@ -332,4 +288,5 @@ int obj_detection(){
   if (distance <= STOP_DIST)
     return STOP;
   return -1;
-}
+}*/
+

@@ -28,10 +28,9 @@ LSM303::LSM303(void)
   adjust these values in your own sketch.
   -538 -811 -1092   790  375  519 
   */
- // m_min = (LSM303::vector<int16_t>){-149, -158, -1477};
- // m_max = (LSM303::vector<int16_t>){+527, +906, -655};
-  m_max = (LSM303::vector<int16_t>){-32767, -32767, -32767};
-  m_min = (LSM303::vector<int16_t>){+32767, +32767, +32767};
+  m_min = (LSM303::vector<int16_t>){-32767, -32767, -32767};
+  m_max = (LSM303::vector<int16_t>){+32767, +32767, +32767};
+
   //calibrate(&m_min, &m_max);
 
   _device = device_auto;
@@ -435,12 +434,6 @@ void LSM303::readMag(void)
   m.x = (int16_t)(xhm << 8 | xlm);
   m.y = (int16_t)(yhm << 8 | ylm);
   m.z = (int16_t)(zhm << 8 | zlm);
-  m_max.x = max(m_max.x, m.x);
-  m_max.y = max(m_max.y, m.y);
-  m_max.z = max(m_max.z, m.z);
-  m_min.x = min(m_min.x, m.x);
-  m_min.y = min(m_min.y, m.y);
-  m_min.z = min(m_min.z, m.z);
 }
 
 // Reads all 6 channels of the LSM303 and stores them in the object variables
@@ -463,11 +456,11 @@ float LSM303::heading(void)
 {
   if (_device == device_D)
   {
-    return heading((vector<int>){0, 0, 1});
+    return heading((vector<int>){1, 0, 0});
   }
   else
   {                             /*device 'pointing along the -y axis*/
-    return heading((vector<int>){1, 0, 0});
+    return heading((vector<int>){0, -1, 0});
   }
 }
 
@@ -500,4 +493,3 @@ int LSM303::testReg(byte address, regAddr reg)
     return TEST_REG_ERROR;
   }
 }
-
